@@ -149,6 +149,7 @@ impl<StoreType> LinkedList<StoreType> {
         true
     }
 
+    /// Gets an element in the linked list at this index.
     pub fn get(&self, idx: usize) -> Option<&StoreType> {
         let mut cur_node = &self.next;
         let mut cur_idx = 0;
