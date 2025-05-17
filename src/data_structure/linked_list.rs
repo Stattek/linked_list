@@ -365,4 +365,28 @@ mod tests {
         assert_eq!(3, *list.get(3).unwrap());
         assert_eq!(4, *list.get(4).unwrap());
     }
+
+    #[test]
+    fn test_get() {
+        let mut list = LinkedList::<i32>::new();
+
+        let mut result = list.get(0);
+        if result.is_some() {
+            assert!(false); // fail
+        }
+        list.push_back(0);
+        assert_eq!(0, *list.get(0).unwrap());
+        list.push_back(1);
+        assert_eq!(1, *list.get(1).unwrap());
+        list.push_back(2);
+        assert_eq!(2, *list.get(2).unwrap());
+        list.push_back(3);
+        assert_eq!(3, *list.get(3).unwrap());
+        list.push_back(4);
+        assert_eq!(4, *list.get(4).unwrap());
+        result = list.get(5);
+        if result.is_some() {
+            assert!(false); // fail
+        }
+    }
 }
