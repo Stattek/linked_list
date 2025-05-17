@@ -3,6 +3,8 @@ use std::ptr::NonNull;
 /// Linked List struct that can hold any type of value.
 pub struct LinkedList<StoreType> {
     value: Option<Box<StoreType>>,
+    // next is NonNull because we need raw pointers
+    //to be able to navigate through the linked list mutably.
     next: Option<NonNull<LinkedList<StoreType>>>,
 }
 
