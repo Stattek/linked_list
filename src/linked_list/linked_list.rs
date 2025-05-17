@@ -1,6 +1,9 @@
 use std::ptr::NonNull;
 
 /// Linked List struct that can hold any type of value.
+///
+/// We essentially treat the first node of the LinkedList as the head.
+/// It will never contain a value, it will just point to the rest of the list.
 pub struct LinkedList<StoreType> {
     value: Option<Box<StoreType>>,
     // next is NonNull because we need raw pointers
@@ -18,7 +21,7 @@ impl<StoreType> LinkedList<StoreType> {
     }
 
     /// Remove the value at the specified index.
-    pub fn remove(&mut self, idx: usize) -> bool {
+    pub fn remove(&mut self, idx: usize) -> Result<(), ()> {
         let mut cur_node; // our current value
 
         if idx == 0 {
@@ -26,7 +29,7 @@ impl<StoreType> LinkedList<StoreType> {
             if let Some(temp_val) = self.next {
                 cur_node = temp_val.as_ptr();
             } else {
-                return false; // expected a value but got none
+                return Err(()); // expected a value but got none
             }
 
             // SAFETY: cur_node is always Some value
@@ -41,7 +44,7 @@ impl<StoreType> LinkedList<StoreType> {
             if let Some(temp_val) = self.next {
                 cur_node = temp_val.as_ptr();
             } else {
-                return false; // fail, empty list
+                return Err(()); // fail, empty list
             }
 
             let mut cur_idx = 0;
@@ -52,7 +55,7 @@ impl<StoreType> LinkedList<StoreType> {
                     if let Some(temp_val) = (*cur_node).next {
                         cur_node = temp_val.as_ptr();
                     } else {
-                        return false; // fail, expected a value to be here and there wasn't
+                        return Err(()); // fail, expected a value to be here and there wasn't
                     }
                 }
                 cur_idx += 1;
@@ -66,7 +69,7 @@ impl<StoreType> LinkedList<StoreType> {
                 if let Some(temp_val) = (*cur_node).next {
                     node_to_remove = temp_val.as_ptr();
                 } else {
-                    return false; // expected the next value to exist, but it doesn't
+                    return Err(()); // expected the next value to exist, but it doesn't
                 }
 
                 if (*node_to_remove).next.is_some() {
@@ -78,12 +81,12 @@ impl<StoreType> LinkedList<StoreType> {
             }
         }
 
-        true
+        Ok(())
     }
 
     /// Pushes a value at the beginning of the list.
     /// Sets this value as the new head.
-    pub fn push_front(&mut self, value: StoreType) -> bool {
+    pub fn push_front(&mut self, value: StoreType) {
         // allocate on the heap
         let new_node = Box::new(LinkedList {
             value: Some(Box::new(value)),
@@ -104,12 +107,10 @@ impl<StoreType> LinkedList<StoreType> {
             // head is now the new pointer
             self.next = Some(new_node_ptr);
         }
-
-        true
     }
 
     /// Pushes a value at the end of the list.
-    pub fn push_back(&mut self, value: StoreType) -> bool {
+    pub fn push_back(&mut self, value: StoreType) {
         if self.next.is_none() {
             // empty list, push to the front
 
@@ -119,23 +120,14 @@ impl<StoreType> LinkedList<StoreType> {
             });
             self.next = Some(Box::leak(new_node).into());
         } else {
-            let mut cur_node; // our current value
-
-            if let Some(temp_val) = self.next {
-                cur_node = temp_val.as_ptr();
-            } else {
-                return false; // fail, empty list
-            }
-
-            // SAFETY: cur_node is always Some value
             unsafe {
+                // we already checked self.next to be some value
+                let mut cur_node_ptr = self.next.unwrap_unchecked().as_ptr();
+
                 // keep going until we are at the last node
-                while (*cur_node).next.is_some() {
-                    if let Some(temp_val) = (*cur_node).next {
-                        cur_node = temp_val.as_ptr();
-                    } else {
-                        return false; // fail, expected a value to be here and there wasn't
-                    }
+                while (*cur_node_ptr).next.is_some() {
+                    // we already checked that the next value is something
+                    cur_node_ptr = (*cur_node_ptr).next.unwrap_unchecked().as_ptr();
                 }
 
                 // allocate on the heap
@@ -144,11 +136,13 @@ impl<StoreType> LinkedList<StoreType> {
                     next: None,
                 });
                 // this is the new tail of the list
-                (*cur_node).next = Some(Box::leak(new_node).into());
+                (*cur_node_ptr).next = Some(Box::leak(new_node).into());
             }
         }
+    }
 
-        true
+    pub fn push_at(&mut self, value: StoreType, idx: usize) -> Result<(), ()> {
+        Ok(())
     }
 
     /// Gets an element in the linked list at this index.
@@ -175,6 +169,12 @@ impl<StoreType> LinkedList<StoreType> {
     }
 }
 
+impl<StoreType> Drop for LinkedList<StoreType> {
+    fn drop(&mut self) {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -190,7 +190,8 @@ mod tests {
         assert_eq!(5, *list.get(0).unwrap());
         assert_eq!(4, *list.get(1).unwrap());
 
-        list.remove(0);
+        list.remove(0)
+            .expect("Removing this element should not cause an error");
         assert_eq!(4, *list.get(0).unwrap());
 
         list.push_back(100);
