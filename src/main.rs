@@ -6,8 +6,8 @@ fn main() {
 
     let mut list = LinkedList::<i32>::new();
 
-    list.push_left(4);
-    list.push_left(5);
+    list.push_front(4);
+    list.push_front(5);
 
     println!("First value: {}", list.get(0).unwrap());
 
