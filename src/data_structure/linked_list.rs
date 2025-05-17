@@ -208,8 +208,8 @@ impl<StoreType> LinkedList<StoreType> {
                         value: Some(Box::new(value)),
                         next: (*before_node_ptr).next,
                     });
-                    // now we set the value
 
+                    // now we set the value
                     (*before_node_ptr).next = Some(Box::leak(new_node).into());
                 }
             } else {
@@ -330,5 +330,39 @@ mod tests {
 
         assert_eq!(1, *list.get(0).unwrap());
         assert_eq!(2, *list.get(1).unwrap());
+    }
+
+    #[test]
+    fn test_push_front() {
+        let mut list = LinkedList::<i32>::new();
+
+        list.push_front(4);
+        list.push_front(3);
+        list.push_front(2);
+        list.push_front(1);
+        list.push_front(0);
+
+        assert_eq!(0, *list.get(0).unwrap());
+        assert_eq!(1, *list.get(1).unwrap());
+        assert_eq!(2, *list.get(2).unwrap());
+        assert_eq!(3, *list.get(3).unwrap());
+        assert_eq!(4, *list.get(4).unwrap());
+    }
+
+    #[test]
+    fn test_push_back() {
+        let mut list = LinkedList::<i32>::new();
+
+        list.push_back(0);
+        list.push_back(1);
+        list.push_back(2);
+        list.push_back(3);
+        list.push_back(4);
+
+        assert_eq!(0, *list.get(0).unwrap());
+        assert_eq!(1, *list.get(1).unwrap());
+        assert_eq!(2, *list.get(2).unwrap());
+        assert_eq!(3, *list.get(3).unwrap());
+        assert_eq!(4, *list.get(4).unwrap());
     }
 }
